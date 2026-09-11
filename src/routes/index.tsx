@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import heroImage from "@/assets/hero.jpg";
 import { CursorGrid } from "@/components/CursorGrid";
-import { HeroScene } from "@/components/HeroScene";
+import { HeroScene, HeroSideScene } from "@/components/HeroScene";
 import { CatalogCard } from "@/components/CatalogCard";
 import { Reveal } from "@/components/Reveal";
 import { SectionHeading, SectionTag } from "@/components/SectionHeading";
@@ -45,7 +45,8 @@ function Home() {
         <div className="absolute inset-0 bg-gradient-to-b from-background/90 via-background/75 to-background" />
         <CursorGrid />
         <HeroScene />
-        <div className="container-x relative py-20">
+        <HeroSideScene />
+        <div className="container-x relative py-20 text-center">
           <Reveal>
             <SectionTag>Next-gen tech studio</SectionTag>
           </Reveal>
@@ -55,19 +56,19 @@ function Home() {
                 aria-hidden="true"
                 className="heading-glow -top-16 -left-10 h-64 w-[32rem] max-w-full"
               />
-              <h1 className="relative mt-6 max-w-4xl text-4xl leading-[1.03] font-semibold sm:text-6xl lg:text-7xl">
+              <h1 className="relative mx-auto mt-6 max-w-4xl text-4xl leading-[1.03] font-semibold sm:text-6xl lg:text-7xl">
                 We build the tech <span className="text-gradient">your business runs on.</span>
               </h1>
             </div>
           </Reveal>
           <Reveal delay={180}>
-            <p className="accent-rule mt-8 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+            <p className="mx-auto mt-8 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
               Tevexxo is a software and product studio. We design, engineer and ship the systems
               that carry real operations — then keep them sharp long after launch.
             </p>
           </Reveal>
           <Reveal delay={260}>
-            <div className="mt-10 flex flex-wrap gap-3">
+            <div className="mt-10 flex flex-wrap justify-center gap-3">
               <Link to="/contact" className="btn-solid">
                 Start a project <ArrowRight className="h-4 w-4" />
               </Link>
