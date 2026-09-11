@@ -16,7 +16,7 @@ export function Navbar() {
           <span className="font-display text-lg font-semibold tracking-tight">tevexxo</span>
         </Link>
 
-        <div className="hidden items-center gap-7 lg:flex">
+        <div className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-7 lg:flex">
           {navLinks.map((l) => (
             <Link
               key={l.to}
@@ -27,10 +27,11 @@ export function Navbar() {
               {l.label}
             </Link>
           ))}
-          <Link to="/contact" className="btn-solid px-5 py-2 text-sm">
-            Contact us
-          </Link>
         </div>
+
+        <Link to="/contact" className="btn-solid hidden px-5 py-2 text-sm lg:inline-flex">
+          Contact us
+        </Link>
 
         <button
           type="button"
