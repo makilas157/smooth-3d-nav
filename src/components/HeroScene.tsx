@@ -244,7 +244,7 @@ export function HeroScene() {
     <div
       ref={host}
       aria-hidden="true"
-      className="hero-scene pointer-events-none absolute top-1/2 left-1/2 hidden h-[42rem] w-[42rem] max-w-[92vw] -translate-x-1/2 -translate-y-1/2 opacity-60 md:block"
+      className="hero-scene pointer-events-none absolute top-1/2 -left-40 hidden h-[38rem] w-[38rem] max-w-[55vw] -translate-y-1/2 opacity-80 md:block lg:-left-24"
     >
       <span className="heading-glow inset-8" />
       {ready && (
@@ -266,6 +266,180 @@ export function HeroScene() {
             </Environment>
             <HeroObject mobile={mobile} reduced={reduced} pointer={pointer} />
             <EmberField mobile={mobile} reduced={reduced} />
+          </Suspense>
+        </Canvas>
+      )}
+    </div>
+  );
+}
+
+function GyroObject({
+  mobile,
+  reduced,
+  pointer,
+}: {
+  mobile: boolean;
+  reduced: boolean;
+  pointer: React.RefObject<PointerTarget>;
+}) {
+  const group = useRef<THREE.Group>(null);
+  const crystal = useRef<THREE.Mesh>(null);
+  const crystalMat = useRef<THREE.MeshStandardMaterial>(null);
+  const ringA = useRef<THREE.Mesh>(null);
+  const ringB = useRef<THREE.Mesh>(null);
+  const ringC = useRef<THREE.Mesh>(null);
+  const sparks = useRef<THREE.Points>(null);
+  const glow = useRef<THREE.PointLight>(null);
+  const t = useRef(0);
+
+  const { positions, count } = useMemo(() => {
+    const count = mobile ? 90 : 180;
+    const positions = new Float32Array(count * 3);
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const radius = 1.6 + Math.random() * 1.6;
+      positions[i * 3] = Math.cos(angle) * radius;
+      positions[i * 3 + 1] = (Math.random() - 0.5) * 3.2;
+      positions[i * 3 + 2] = Math.sin(angle) * radius * 0.6;
+    }
+    return { positions, count };
+  }, [mobile]);
+
+  useFrame((_, rawDelta) => {
+    const delta = Math.min(rawDelta, 0.05);
+    t.current += delta;
+    const time = t.current;
+    const px = reduced ? 0 : pointer.current?.x ?? 0;
+    const py = reduced ? 0 : pointer.current?.y ?? 0;
+    const ease = 1 - Math.exp(-3.2 * delta);
+
+    if (group.current) {
+      group.current.position.y = THREE.MathUtils.lerp(
+        group.current.position.y,
+        -py * 0.3 + Math.sin(time * 0.7) * 0.18,
+        ease,
+      );
+      group.current.rotation.y = THREE.MathUtils.lerp(group.current.rotation.y, px * 0.35, ease);
+    }
+    if (crystal.current) {
+      crystal.current.rotation.y += delta * 0.5;
+      crystal.current.rotation.x = Math.sin(time * 0.4) * 0.25;
+    }
+    if (ringA.current) ringA.current.rotation.x += delta * 0.45;
+    if (ringB.current) ringB.current.rotation.y -= delta * 0.32;
+    if (ringC.current) ringC.current.rotation.z += delta * 0.24;
+    if (sparks.current && !reduced) sparks.current.rotation.y -= delta * 0.08;
+
+    const pulse = 0.5 + 0.5 * Math.sin(time * 1.4);
+    if (crystalMat.current) crystalMat.current.emissiveIntensity = 0.9 + pulse * 1.4;
+    if (glow.current) glow.current.intensity = 6 + pulse * 10;
+  });
+
+  return (
+    <group ref={group} scale={mobile ? 0.5 : 0.62}>
+      <pointLight ref={glow} position={[0, 0, 1.2]} color={scenePalette.cool} distance={12} intensity={9} />
+      <mesh ref={crystal}>
+        <octahedronGeometry args={[1.05, 0]} />
+        <meshStandardMaterial
+          ref={crystalMat}
+          color={scenePalette.midnight}
+          emissive={scenePalette.cool}
+          emissiveIntensity={1.2}
+          roughness={0.15}
+          metalness={0.9}
+          flatShading
+        />
+      </mesh>
+      <mesh ref={ringA} scale={1.7}>
+        <torusGeometry args={[1, 0.02, 8, 120]} />
+        <meshBasicMaterial color={scenePalette.amber} transparent opacity={0.8} />
+      </mesh>
+      <mesh ref={ringB} rotation-x={Math.PI / 2.6} scale={1.95}>
+        <torusGeometry args={[1, 0.014, 8, 120]} />
+        <meshBasicMaterial color={scenePalette.cool} transparent opacity={0.55} wireframe />
+      </mesh>
+      <mesh ref={ringC} rotation-y={Math.PI / 3.2} scale={2.2}>
+        <torusGeometry args={[1, 0.01, 8, 120]} />
+        <meshBasicMaterial color={scenePalette.copper} transparent opacity={0.6} />
+      </mesh>
+      <points ref={sparks} key={count}>
+        <bufferGeometry>
+          <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+        </bufferGeometry>
+        <pointsMaterial
+          color={scenePalette.cool}
+          size={0.04}
+          transparent
+          opacity={0.65}
+          sizeAttenuation
+          depthWrite={false}
+        />
+      </points>
+    </group>
+  );
+}
+
+export function HeroSideScene() {
+  const [ready, setReady] = useState(false);
+  const [visible, setVisible] = useState(true);
+  const [mobile, setMobile] = useState(false);
+  const [reduced, setReduced] = useState(false);
+  const host = useRef<HTMLDivElement>(null);
+  const pointer = useRef<PointerTarget>({ x: 0, y: 0 });
+
+  useEffect(() => {
+    setReady(true);
+    setMobile(window.matchMedia("(max-width: 768px)").matches);
+    setReduced(prefersReducedMotion());
+  }, []);
+
+  useEffect(() => {
+    if (mobile || reduced) return;
+    const onPointerMove = (event: PointerEvent) => {
+      pointer.current.x = (event.clientX / window.innerWidth) * 2 - 1;
+      pointer.current.y = (event.clientY / window.innerHeight) * 2 - 1;
+    };
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
+    return () => window.removeEventListener("pointermove", onPointerMove);
+  }, [mobile, reduced]);
+
+  useEffect(() => {
+    const el = host.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => setVisible(entries.some((e) => e.isIntersecting)),
+      { threshold: 0.01 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  const dpr = useMemo<[number, number]>(() => (mobile ? [1, 1.5] : [1, 2]), [mobile]);
+
+  return (
+    <div
+      ref={host}
+      aria-hidden="true"
+      className="hero-scene pointer-events-none absolute top-1/2 -right-40 hidden h-[38rem] w-[38rem] max-w-[55vw] -translate-y-1/2 opacity-80 md:block lg:-right-24"
+    >
+      {ready && (
+        <Canvas
+          className="relative"
+          dpr={dpr}
+          frameloop={reduced ? "demand" : visible ? "always" : "never"}
+          gl={{ antialias: !mobile, powerPreference: "high-performance", alpha: true }}
+          camera={{ position: [0, 0, 6], fov: 45 }}
+        >
+          <ambientLight intensity={0.4} />
+          <directionalLight position={[4, 6, 5]} intensity={1.1} color={scenePalette.cool} />
+          <directionalLight position={[-4, -2, 3]} intensity={0.7} color={scenePalette.amber} />
+          <Suspense fallback={null}>
+            <Environment resolution={64}>
+              <Lightformer intensity={2} position={[0, 5, 1]} scale={[8, 3, 1]} />
+              <Lightformer intensity={1.2} color={scenePalette.cool} position={[-5, 0, 1]} rotation-y={Math.PI / 2} scale={[6, 2, 1]} />
+              <Lightformer intensity={0.9} color={scenePalette.amber} position={[5, -1, 0]} rotation-y={-Math.PI / 2} scale={[5, 2, 1]} />
+            </Environment>
+            <GyroObject mobile={mobile} reduced={reduced} pointer={pointer} />
           </Suspense>
         </Canvas>
       )}
