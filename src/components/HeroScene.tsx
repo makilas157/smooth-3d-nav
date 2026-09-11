@@ -96,7 +96,7 @@ function HeroObject({
   );
 
   return (
-    <group ref={group} scale={mobile ? 0.8 : 1}>
+    <group ref={group} scale={mobile ? 0.55 : 0.68}>
       <pointLight ref={glow} position={[0, 0, 1.6]} color={scenePalette.amber} distance={14} intensity={12} />
       <mesh ref={core}>
         <torusKnotGeometry args={[1.15, 0.34, segments[0], segments[1], 2, 3]} />
@@ -130,6 +130,62 @@ function HeroObject({
           </mesh>
         ))}
       </group>
+    </group>
+  );
+}
+
+function EmberField({ mobile, reduced }: { mobile: boolean; reduced: boolean }) {
+  const points = useRef<THREE.Points>(null);
+  const ringA = useRef<THREE.Mesh>(null);
+  const ringB = useRef<THREE.Mesh>(null);
+
+  const { positions, count } = useMemo(() => {
+    const count = mobile ? 160 : 320;
+    const positions = new Float32Array(count * 3);
+    for (let i = 0; i < count; i++) {
+      const r = 2.8 + Math.random() * 4.2;
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+      positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+      positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta) * 0.6;
+      positions[i * 3 + 2] = r * Math.cos(phi) * 0.5 - 1;
+    }
+    return { positions, count };
+  }, [mobile]);
+
+  useFrame((_, rawDelta) => {
+    const delta = Math.min(rawDelta, 0.05);
+    if (points.current && !reduced) {
+      points.current.rotation.y += delta * 0.05;
+      points.current.rotation.x = Math.sin(Date.now() * 0.0001) * 0.1;
+    }
+    if (ringA.current) ringA.current.rotation.z += delta * 0.22;
+    if (ringB.current) ringB.current.rotation.z -= delta * 0.16;
+  });
+
+  return (
+    <group>
+      <points ref={points} key={count}>
+        <bufferGeometry>
+          <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+        </bufferGeometry>
+        <pointsMaterial
+          color={scenePalette.amber}
+          size={0.035}
+          transparent
+          opacity={0.7}
+          sizeAttenuation
+          depthWrite={false}
+        />
+      </points>
+      <mesh ref={ringA} rotation-x={Math.PI / 2.4} scale={3.1}>
+        <torusGeometry args={[1, 0.006, 6, 140]} />
+        <meshBasicMaterial color={scenePalette.copper} transparent opacity={0.55} wireframe />
+      </mesh>
+      <mesh ref={ringB} rotation-x={-Math.PI / 3} rotation-y={Math.PI / 5} scale={3.7}>
+        <torusGeometry args={[1, 0.004, 6, 140]} />
+        <meshBasicMaterial color={scenePalette.cool} transparent opacity={0.3} wireframe />
+      </mesh>
     </group>
   );
 }
@@ -188,7 +244,7 @@ export function HeroScene() {
     <div
       ref={host}
       aria-hidden="true"
-      className="hero-scene pointer-events-none absolute top-1/2 right-[-8%] hidden h-[34rem] w-[34rem] -translate-y-1/2 opacity-90 md:block lg:right-[2%]"
+      className="hero-scene pointer-events-none absolute top-1/2 left-1/2 hidden h-[42rem] w-[42rem] max-w-[92vw] -translate-x-1/2 -translate-y-1/2 opacity-60 md:block"
     >
       <span className="heading-glow inset-8" />
       {ready && (
@@ -209,6 +265,7 @@ export function HeroScene() {
               <Lightformer intensity={0.8} color={scenePalette.cool} position={[5, -1, 0]} rotation-y={-Math.PI / 2} scale={[5, 2, 1]} />
             </Environment>
             <HeroObject mobile={mobile} reduced={reduced} pointer={pointer} />
+            <EmberField mobile={mobile} reduced={reduced} />
           </Suspense>
         </Canvas>
       )}
