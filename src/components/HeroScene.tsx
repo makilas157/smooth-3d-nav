@@ -96,7 +96,7 @@ function HeroObject({
   );
 
   return (
-    <group ref={group} scale={mobile ? 0.8 : 1}>
+    <group ref={group} scale={mobile ? 0.55 : 0.68}>
       <pointLight ref={glow} position={[0, 0, 1.6]} color={scenePalette.amber} distance={14} intensity={12} />
       <mesh ref={core}>
         <torusKnotGeometry args={[1.15, 0.34, segments[0], segments[1], 2, 3]} />
@@ -244,7 +244,7 @@ export function HeroScene() {
     <div
       ref={host}
       aria-hidden="true"
-      className="hero-scene pointer-events-none absolute top-1/2 left-1/2 hidden h-[42rem] w-[42rem] max-w-[92vw] -translate-x-1/2 -translate-y-1/2 opacity-80 md:block"
+      className="hero-scene pointer-events-none absolute top-1/2 left-1/2 hidden h-[42rem] w-[42rem] max-w-[92vw] -translate-x-1/2 -translate-y-1/2 opacity-60 md:block"
     >
       <span className="heading-glow inset-8" />
       {ready && (
