@@ -78,7 +78,6 @@ function HeroObject({
   });
 
   const segments = mobile ? [128, 12] : [220, 24];
-  void segments;
   const satellites = useMemo(
     () =>
       Array.from({ length: mobile ? 5 : 8 }, (_, index) => {
