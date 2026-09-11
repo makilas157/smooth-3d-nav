@@ -244,7 +244,7 @@ export function HeroScene() {
     <div
       ref={host}
       aria-hidden="true"
-      className="hero-scene pointer-events-none absolute top-1/2 left-1/2 hidden h-[42rem] w-[42rem] max-w-[92vw] -translate-x-1/2 -translate-y-1/2 opacity-60 md:block"
+      className="hero-scene pointer-events-none absolute top-1/2 -left-40 hidden h-[38rem] w-[38rem] max-w-[55vw] -translate-y-1/2 opacity-80 md:block lg:-left-24"
     >
       <span className="heading-glow inset-8" />
       {ready && (
