@@ -265,6 +265,7 @@ export function HeroScene() {
               <Lightformer intensity={0.8} color={scenePalette.cool} position={[5, -1, 0]} rotation-y={-Math.PI / 2} scale={[5, 2, 1]} />
             </Environment>
             <HeroObject mobile={mobile} reduced={reduced} pointer={pointer} />
+            <EmberField mobile={mobile} reduced={reduced} />
           </Suspense>
         </Canvas>
       )}
